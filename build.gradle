@@ -18,9 +18,9 @@ sourceSets {
             srcDir 'oracle-sun'
             srcDir 'proguard'
         }
-        //resources {
-        //    srcDir 'src'
-        //}
+        resources {
+            srcDir 'oracle-sun'
+        }
     }
     test {
         java{
