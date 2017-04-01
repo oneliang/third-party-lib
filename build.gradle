@@ -15,7 +15,7 @@ sourceSets {
             srcDir 'javassist'
             srcDir 'jdom'
             srcDir 'google'
-            srcDir 'oracle-sun'
+            //srcDir 'oracle-sun'
             srcDir 'proguard'
         }
         resources {
