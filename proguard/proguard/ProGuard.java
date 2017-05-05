@@ -54,22 +54,38 @@ public class ProGuard
         this.configuration = configuration;
     }
 
+    private static long BYTES_PER_MB = 1024 * 1024;
 
+    private void log(String prefixAppendMessage,long begin) {
+        long heapSize = Runtime.getRuntime().totalMemory();
+        long heapMaxSize = Runtime.getRuntime().maxMemory();
+        // long heapFreeSize=Runtime.getRuntime().freeMemory();
+
+        long heapSizeM = heapSize / BYTES_PER_MB;
+        long heapMaxSizeM = heapMaxSize / BYTES_PER_MB;
+        // long heapFreeSizeM=heapFreeSize/Constant.Capacity.BYTES_PER_MB;
+        short currentPercent = (short) ((double) heapSizeM / heapMaxSizeM * 100);
+        System.out.println(prefixAppendMessage+",cost:" + (System.currentTimeMillis() - begin) + "," + "jvm used percent:" + currentPercent + "%" + ",heap size:" + heapSizeM + "M,max:" + heapMaxSizeM + "M");
+    }
     /**
      * Performs all subsequent ProGuard operations.
      */
     public void execute() throws IOException
     {
+        long begin = System.currentTimeMillis();
         System.out.println(VERSION);
 
         GPL.check();
 
         if (configuration.printConfiguration != null)
         {
+            begin = System.currentTimeMillis();
             printConfiguration();
+            log("printConfiguration", begin);
         }
-
+        begin = System.currentTimeMillis();
         new ConfigurationChecker(configuration).check();
+        log("check", begin);
 
         if (configuration.programJars != null     &&
             configuration.programJars.hasOutput() &&
@@ -77,15 +93,17 @@ public class ProGuard
         {
             return;
         }
-
+        begin = System.currentTimeMillis();
         readInput();
-
+        log("readInput", begin);
         if (configuration.shrink    ||
             configuration.optimize  ||
             configuration.obfuscate ||
             configuration.preverify)
         {
+            begin = System.currentTimeMillis();
             clearPreverification();
+            log("clearPreverification", begin);
         }
 
         if (configuration.printSeeds != null ||
@@ -94,27 +112,37 @@ public class ProGuard
             configuration.obfuscate ||
             configuration.preverify)
         {
+            begin = System.currentTimeMillis();
             initialize();
+            log("initialize", begin);
         }
 
         if (configuration.targetClassVersion != 0)
         {
+            begin = System.currentTimeMillis();
             target();
+            log("targetClassVersion", begin);
         }
 
         if (configuration.printSeeds != null)
         {
+            begin = System.currentTimeMillis();
             printSeeds();
+            log("printSeeds", begin);
         }
 
         if (configuration.shrink)
         {
+            begin = System.currentTimeMillis();
             shrink();
+            log("shrink", begin);
         }
 
         if (configuration.preverify)
         {
+            begin = System.currentTimeMillis();
             inlineSubroutines();
+            log("inlineSubroutines", begin);
         }
 
         if (configuration.optimize)
@@ -123,6 +151,7 @@ public class ProGuard
                  optimizationPass < configuration.optimizationPasses;
                  optimizationPass++)
             {
+                begin = System.currentTimeMillis();
                 if (!optimize())
                 {
                     // Stop optimizing if the code doesn't improve any further.
@@ -138,17 +167,22 @@ public class ProGuard
 
                     shrink();
                 }
+                log("optimize & shrink", begin);
             }
         }
 
         if (configuration.obfuscate)
         {
+            begin = System.currentTimeMillis();
             obfuscate();
+            log("obfuscate", begin);
         }
 
         if (configuration.preverify)
         {
+            begin = System.currentTimeMillis();
             preverify();
+            log("preverify", begin);
         }
 
         if (configuration.shrink    ||
@@ -156,17 +190,23 @@ public class ProGuard
             configuration.obfuscate ||
             configuration.preverify)
         {
+            begin = System.currentTimeMillis();
             sortClassElements();
+            log("sortClassElements", begin);
         }
 
         if (configuration.programJars.hasOutput())
         {
+            begin = System.currentTimeMillis();
             writeOutput();
+            log("writeOutput", begin);
         }
 
         if (configuration.dump != null)
         {
+            begin = System.currentTimeMillis();
             dump();
+            log("dump", begin);
         }
     }
 
@@ -483,7 +523,7 @@ public class ProGuard
         {
             System.out.println(VERSION);
             System.out.println("Usage: java proguard.ProGuard [options ...]");
-            System.exit(1);
+//            System.exit(1);
         }
 
         // Create the default options.
@@ -519,7 +559,7 @@ public class ProGuard
                 System.err.println("Error: "+ex.getMessage());
             }
 
-            System.exit(1);
+//            System.exit(1);
         }
 
     }
