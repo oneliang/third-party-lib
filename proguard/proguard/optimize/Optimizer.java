@@ -127,6 +127,7 @@ public class Optimizer
     public boolean execute(ClassPool programClassPool,
                            ClassPool libraryClassPool) throws IOException
     {
+        long begin = System.currentTimeMillis();
         // Check if we have at least some keep commands.
         if (configuration.keep         == null &&
             configuration.applyMapping == null &&
@@ -251,7 +252,10 @@ public class Optimizer
         // All library classes and library class members remain unchanged.
         libraryClassPool.classesAccept(keepMarker);
         libraryClassPool.classesAccept(new AllMemberVisitor(keepMarker));
-
+        
+        ProGuard.log("execute library class pool classes accept", begin);
+        begin = System.currentTimeMillis();
+        
         // We also keep all classes that are involved in .class constructs.
         // We're not looking at enum classes though, so they can be simplified.
         programClassPool.classesAccept(
@@ -260,19 +264,28 @@ public class Optimizer
             new AllAttributeVisitor(
             new AllInstructionVisitor(
             new DotClassClassVisitor(keepMarker))))));
-
+        
+        ProGuard.log("programClassPool.classesAccept,enum classes though, so they can be simplified", begin);
+        begin = System.currentTimeMillis();
+        
         // We also keep all classes that are accessed dynamically.
         programClassPool.classesAccept(
             new AllConstantVisitor(
             new ConstantTagFilter(ClassConstants.CONSTANT_String,
             new ReferencedClassVisitor(keepMarker))));
 
+        ProGuard.log("programClassPool.classesAccept,all classes that are accessed dynamically", begin);
+        begin = System.currentTimeMillis();
+        
         // We also keep all class members that are accessed dynamically.
         programClassPool.classesAccept(
             new AllConstantVisitor(
             new ConstantTagFilter(ClassConstants.CONSTANT_String,
             new ReferencedMemberVisitor(keepMarker))));
 
+        ProGuard.log("programClassPool.classesAccept,all class members that are accessed dynamically", begin);
+        begin = System.currentTimeMillis();
+        
         // We also keep all bootstrap method signatures.
         programClassPool.classesAccept(
             new ClassVersionFilter(ClassConstants.CLASS_VERSION_1_7,
@@ -283,6 +296,9 @@ public class Optimizer
             new MethodrefTraveler(
             new ReferencedMemberVisitor(keepMarker))))))));
 
+        ProGuard.log("programClassPool.classesAccept,all bootstrap method signatures", begin);
+        begin = System.currentTimeMillis();
+        
         // We also keep all bootstrap method arguments that point to methods.
         // These arguments are typically the method handles for
         // java.lang.invoke.LambdaMetafactory#metafactory, which provides the
@@ -296,6 +312,9 @@ public class Optimizer
             new MethodrefTraveler(
             new ReferencedMemberVisitor(keepMarker))))))));
 
+        ProGuard.log("programClassPool.classesAccept,all bootstrap method arguments that point to methods", begin);
+        begin = System.currentTimeMillis();
+        
         // We also keep all classes (and their methods) returned by dynamic
         // method invocations. They may return dynamic implementations of
         // interfaces that otherwise appear unused.
@@ -309,6 +328,9 @@ public class Optimizer
                 new AllMemberVisitor(keepMarker)
             })))));
 
+        ProGuard.log("programClassPool.classesAccept,all classes (and their methods) returned by dynamic", begin);
+        begin = System.currentTimeMillis();
+        
         // Attach some optimization info to all classes and class members, so
         // it can be filled out later.
         programClassPool.classesAccept(new ClassOptimizationInfoSetter());
@@ -330,6 +352,9 @@ public class Optimizer
             libraryClassPool.accept(noClassPoolvisitor);
         }
 
+        ProGuard.log("configuration.assumeNoSideEffects", begin);
+        begin = System.currentTimeMillis();
+        
         if (classMarkingFinal)
         {
             // Make classes final, whereever possible.
@@ -337,6 +362,9 @@ public class Optimizer
                 new ClassFinalizer(classMarkingFinalCounter));
         }
 
+        ProGuard.log("classMarkingFinal", begin);
+        begin = System.currentTimeMillis();
+        
         if (methodMarkingFinal)
         {
             // Make methods final, whereever possible.
@@ -346,6 +374,9 @@ public class Optimizer
                 new MethodFinalizer(methodMarkingFinalCounter))));
         }
 
+        ProGuard.log("methodMarkingFinal", begin);
+        begin = System.currentTimeMillis();
+        
         if (fieldRemovalWriteonly)
         {
             // Mark all fields that are write-only.
@@ -368,6 +399,9 @@ public class Optimizer
                 new ReadWriteFieldMarker()));
         }
 
+        ProGuard.log("fieldRemovalWriteonly", begin);
+        begin = System.currentTimeMillis();
+        
         if (classUnboxingEnum)
         {
              ClassCounter counter = new ClassCounter();
@@ -417,6 +451,9 @@ public class Optimizer
             }
         }
 
+        ProGuard.log("classUnboxingEnum", begin);
+        begin = System.currentTimeMillis();
+        
         // Mark all used parameters, including the 'this' parameters.
         programClassPool.classesAccept(
             new AllMethodVisitor(
@@ -424,12 +461,21 @@ public class Optimizer
             new ParameterUsageMarker(!methodMarkingStatic,
                                      !methodRemovalParameter))));
 
+        ProGuard.log("Mark all used parameters, including the 'this' parameters", begin);
+        begin = System.currentTimeMillis();
+        
         // Mark all classes that have static initializers.
         programClassPool.classesAccept(new StaticInitializerContainingClassMarker());
 
+        ProGuard.log("Mark all classes that have static initializers", begin);
+        begin = System.currentTimeMillis();
+        
         // Mark all methods that have side effects.
         programClassPool.accept(new SideEffectMethodMarker());
 
+        ProGuard.log("Mark all methods that have side effects", begin);
+        begin = System.currentTimeMillis();
+        
 //        System.out.println("Optimizer.execute: before evaluation simplification");
 //        programClassPool.classAccept("abc/Def", new NamedMethodVisitor("abc", null, new ClassPrinter()));
 
@@ -516,6 +562,9 @@ public class Optimizer
             }
         }
 
+        ProGuard.log("Perform partial evaluation for filling out fields, method parameters", begin);
+        begin = System.currentTimeMillis();
+        
         // Perform partial evaluation again, now loading any previously stored
         // values for fields, method parameters, and method return values.
         ValueFactory valueFactory = new IdentifiedValueFactory();
@@ -538,6 +587,9 @@ public class Optimizer
                 codeSimplificationAdvancedCounter))));
         }
 
+        ProGuard.log("codeSimplificationAdvanced", begin);
+        begin = System.currentTimeMillis();
+        
         if (codeRemovalAdvanced)
         {
             // Remove code based on partial evaluation, also removing unused
@@ -551,6 +603,9 @@ public class Optimizer
                 deletedCounter, addedCounter))));
         }
 
+        ProGuard.log("codeRemovalAdvanced", begin);
+        begin = System.currentTimeMillis();
+        
         if (methodRemovalParameter)
         {
             // Shrink the parameters in the method descriptors.
@@ -560,6 +615,9 @@ public class Optimizer
                 new MethodDescriptorShrinker())));
         }
 
+        ProGuard.log("methodRemovalParameter", begin);
+        begin = System.currentTimeMillis();
+        
         if (methodMarkingStatic)
         {
             // Make all non-static methods that don't require the 'this'
@@ -571,6 +629,9 @@ public class Optimizer
                 new MethodStaticizer(methodMarkingStaticCounter)))));
         }
 
+        ProGuard.log("methodMarkingStatic", begin);
+        begin = System.currentTimeMillis();
+        
         if (methodRemovalParameter)
         {
             // Fix all references to class members.
@@ -585,6 +646,9 @@ public class Optimizer
                 new BootstrapMethodArgumentShrinker())));
         }
 
+        ProGuard.log("methodRemovalParameter", begin);
+        begin = System.currentTimeMillis();
+        
         if (methodRemovalParameter ||
             methodMarkingPrivate   ||
             methodMarkingStatic)
@@ -606,6 +670,9 @@ public class Optimizer
                 new StackSizeUpdater())));
         }
 
+        ProGuard.log("methodRemovalParameter 2", begin);
+        begin = System.currentTimeMillis();
+        
         if (methodRemovalParameter &&
             methodRemovalParameterCounter.getCount() > 0)
         {
@@ -627,6 +694,9 @@ public class Optimizer
                 programClassPool.classesAccept(new MemberReferenceFixer());
             }
         }
+
+        ProGuard.log("methodRemovalParameter 3", begin);
+        begin = System.currentTimeMillis();
 
         //// Specializing the class member descriptors seems to increase the
         //// class file size, on average.
@@ -681,6 +751,9 @@ public class Optimizer
                 })),
             }));
 
+        ProGuard.log("before classMergingVertical", begin);
+        begin = System.currentTimeMillis();
+        
         if (classMergingVertical)
         {
             // Merge subclasses up into their superclasses or
@@ -691,6 +764,10 @@ public class Optimizer
                                         classMergingVerticalCounter));
         }
 
+        
+        ProGuard.log("classMergingVertical", begin);
+        begin = System.currentTimeMillis();
+        
         if (classMergingHorizontal)
         {
             // Merge classes into their sibling classes.
@@ -700,6 +777,9 @@ public class Optimizer
                                           classMergingHorizontalCounter));
         }
 
+        ProGuard.log("classMergingHorizontal", begin);
+        begin = System.currentTimeMillis();
+        
         if (classMergingVerticalCounter  .getCount() > 0 ||
             classMergingHorizontalCounter.getCount() > 0)
         {
@@ -744,6 +824,9 @@ public class Optimizer
             }
         }
 
+        ProGuard.log("classMergingVerticalCounter", begin);
+        begin = System.currentTimeMillis();
+        
         if (methodInliningUnique)
         {
             // Inline methods that are only invoked once.
@@ -756,6 +839,9 @@ public class Optimizer
                                   methodInliningUniqueCounter))));
         }
 
+        ProGuard.log("methodInliningUnique", begin);
+        begin = System.currentTimeMillis();
+        
         if (methodInliningShort)
         {
             // Inline short methods.
@@ -768,6 +854,9 @@ public class Optimizer
                                   methodInliningShortCounter))));
         }
 
+        ProGuard.log("methodInliningShort", begin);
+        begin = System.currentTimeMillis();
+        
         if (methodInliningTailrecursion)
         {
             // Simplify tail recursion calls.
@@ -777,6 +866,9 @@ public class Optimizer
                 new TailRecursionSimplifier(methodInliningTailrecursionCounter))));
         }
 
+        ProGuard.log("methodInliningTailrecursion", begin);
+        begin = System.currentTimeMillis();
+        
         if (fieldMarkingPrivate ||
             methodMarkingPrivate)
         {
@@ -785,6 +877,9 @@ public class Optimizer
                 new NonPrivateMemberMarker());
         }
 
+        ProGuard.log("fieldMarkingPrivate 1", begin);
+        begin = System.currentTimeMillis();
+        
         if (fieldMarkingPrivate)
         {
             // Make all non-private fields private, whereever possible.
@@ -795,6 +890,9 @@ public class Optimizer
                 new MemberPrivatizer(fieldMarkingPrivateCounter)))));
         }
 
+        ProGuard.log("fieldMarkingPrivate 2", begin);
+        begin = System.currentTimeMillis();
+        
         if (methodMarkingPrivate)
         {
             // Make all non-private methods private, whereever possible.
@@ -805,6 +903,9 @@ public class Optimizer
                 new MemberPrivatizer(methodMarkingPrivateCounter)))));
         }
 
+        ProGuard.log("methodMarkingPrivate", begin);
+        begin = System.currentTimeMillis();
+        
         if ((methodInliningUniqueCounter       .getCount() > 0 ||
              methodInliningShortCounter        .getCount() > 0 ||
              methodInliningTailrecursionCounter.getCount() > 0) &&
@@ -839,6 +940,9 @@ public class Optimizer
                 new GotoCommonCodeReplacer(codeMergingCounter))));
         }
 
+        ProGuard.log("codeMerging", begin);
+        begin = System.currentTimeMillis();
+        
         // Create a branch target marker and a code attribute editor that can
         // be reused for all code attributes.
         BranchTargetFinder  branchTargetFinder  = new BranchTargetFinder();

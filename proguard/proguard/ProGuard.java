@@ -56,7 +56,7 @@ public class ProGuard
 
     private static long BYTES_PER_MB = 1024 * 1024;
 
-    private void log(String prefixAppendMessage,long begin) {
+    public static void log(String prefixAppendMessage,long begin) {
         long heapSize = Runtime.getRuntime().totalMemory();
         long heapMaxSize = Runtime.getRuntime().maxMemory();
         // long heapFreeSize=Runtime.getRuntime().freeMemory();
