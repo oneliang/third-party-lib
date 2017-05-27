@@ -20,16 +20,26 @@
  */
 package proguard;
 
-import proguard.classfile.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+
+import proguard.classfile.ClassConstants;
+import proguard.classfile.ClassPool;
 import proguard.classfile.attribute.visitor.AllAttributeVisitor;
-import proguard.classfile.editor.*;
-import proguard.classfile.visitor.*;
+import proguard.classfile.editor.ClassElementSorter;
+import proguard.classfile.editor.NamedAttributeDeleter;
+import proguard.classfile.visitor.AllMethodVisitor;
+import proguard.classfile.visitor.ClassPrinter;
+import proguard.classfile.visitor.ClassVersionFilter;
 import proguard.obfuscate.Obfuscator;
 import proguard.optimize.Optimizer;
-import proguard.preverify.*;
+import proguard.preverify.Preverifier;
+import proguard.preverify.SubroutineInliner;
 import proguard.shrink.Shrinker;
-
-import java.io.*;
 
 /**
  * Tool for shrinking, optimizing, obfuscating, and preverifying Java classes.
@@ -72,7 +82,8 @@ public class ProGuard
      */
     public void execute() throws IOException
     {
-        long begin = System.currentTimeMillis();
+        long totalBegin = System.currentTimeMillis();
+        long begin = totalBegin;
         System.out.println(VERSION);
 
         GPL.check();
@@ -85,7 +96,7 @@ public class ProGuard
         }
         begin = System.currentTimeMillis();
         new ConfigurationChecker(configuration).check();
-        log("check", begin);
+        log("ConfigurationChecker.check", begin);
 
         if (configuration.programJars != null     &&
             configuration.programJars.hasOutput() &&
@@ -208,6 +219,7 @@ public class ProGuard
             dump();
             log("dump", begin);
         }
+        log("Proguard all execute", totalBegin);
     }
 
 
