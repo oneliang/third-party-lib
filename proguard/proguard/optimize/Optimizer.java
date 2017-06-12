@@ -338,6 +338,8 @@ public class Optimizer
         programClassPool.classesAccept(new AllMemberVisitor(
                                        new MemberOptimizationInfoSetter()));
 
+        ProGuard.log("Attach some optimization info to all classes and class members", begin);
+        begin = System.currentTimeMillis();
         if (configuration.assumeNoSideEffects != null)
         {
             // Create a visitor for marking methods that don't have any side effects.
@@ -824,7 +826,7 @@ public class Optimizer
             }
         }
 
-        ProGuard.log("classMergingVerticalCounter", begin);
+        ProGuard.log("classMergingVerticalCounter||classMergingHorizontalCounter", begin);
         begin = System.currentTimeMillis();
         
         if (methodInliningUnique)
@@ -930,7 +932,9 @@ public class Optimizer
                 new AllAttributeVisitor(
                 new MethodInvocationFixer())));
         }
-
+        ProGuard.log("before codeMerging, just fix", begin);
+        begin = System.currentTimeMillis();
+        
         if (codeMerging)
         {
             // Share common blocks of code at branches.
