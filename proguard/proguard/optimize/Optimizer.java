@@ -1029,6 +1029,9 @@ public class Optimizer
                 peepholeOptimizationsArray)))));
         }
 
+        ProGuard.log("peepholeOptimization", begin);
+        begin = System.currentTimeMillis();
+
         if (codeRemovalException)
         {
             // Remove unnecessary exception handlers.
@@ -1070,6 +1073,8 @@ public class Optimizer
         programClassPool.classesAccept(
             new ConstantPoolShrinker());
 
+        ProGuard.log("remove all unused things", begin);
+
         int classMarkingFinalCount            = classMarkingFinalCounter           .getCount();
         int classUnboxingEnumCount            = classUnboxingEnumCounter           .getCount();
         int classMergingVerticalCount         = classMergingVerticalCounter        .getCount();
@@ -1109,6 +1114,7 @@ public class Optimizer
             methodPropagationReturnvalueCount = 0;
         }
 
+        
         if (configuration.verbose)
         {
             System.out.println("  Number of finalized classes:                 " + classMarkingFinalCount            + disabled(classMarkingFinal));
