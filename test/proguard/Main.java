@@ -121,7 +121,9 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception{
-        // FileUtil.mergeZip("/D:/proguard/allOutput.jar", originalJarList);
+//        MatchOption matchOption = new MatchOption("/D:/proguard/proguard_input");
+//        matchOption.fileSuffix=".jar";
+//         FileUtil.mergeZip("/D:/proguard/input/allOutput.jar", FileUtil.findMatchFile(matchOption));
         String projectRealPath = new File("").getAbsolutePath();
         String logFullFilename = projectRealPath + "/log/default.log";
         // loggerList.add(new BaseLogger(Logger.Level.VERBOSE));
@@ -131,8 +133,8 @@ public class Main {
         logFile.getParentFile().mkdirs();
         logFile.createNewFile();
         PrintStream printStream = new PrintStream(new FileOutputStream(logFile, true));
-        System.setOut(printStream);
-        System.setErr(printStream);
+//        System.setOut(printStream);
+//        System.setErr(printStream);
 
         proguardJarPairList.add(new ProguardJarPair("/D:/proguard/input/allOutput.jar", "/D:/proguard/output/allProguardOutput.jar"));
         proguardConfigList.add("D:/Dandelion/android/android-sdks/tools/proguard/proguard-android-optimize.txt");
