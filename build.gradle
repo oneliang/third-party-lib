@@ -11,15 +11,15 @@ sourceSets {
     main {
         java {
             srcDir 'asm'
-            srcDir 'cglib'
-            srcDir 'javassist'
-            srcDir 'jdom'
-            srcDir 'google'
-            srcDir 'oracle-sun'
-            srcDir 'proguard'
+//            srcDir 'cglib'
+//            srcDir 'javassist'
+//            srcDir 'jdom'
+//            srcDir 'google'
+//            srcDir 'oracle-sun'
+//            srcDir 'proguard'
         }
         resources {
-            srcDir 'oracle-sun'
+//            srcDir 'oracle-sun'
         }
     }
     test {
@@ -30,10 +30,9 @@ sourceSets {
 }
 
 repositories {
-	mavenLocal()
-    maven { 
-    	url 'http://repo1.maven.org/maven2' 
-    }
+    mavenLocal()
+    google()
+    jcenter()
 }
 
 task sourceJar(type: Jar) {
