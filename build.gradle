@@ -11,9 +11,9 @@ sourceSets {
     main {
         java {
             srcDir 'asm'
-//            srcDir 'cglib'
+            srcDir 'cglib'
 //            srcDir 'javassist'
-//            srcDir 'jdom'
+            srcDir 'jdom'
 //            srcDir 'google'
 //            srcDir 'oracle-sun'
 //            srcDir 'proguard'
@@ -31,7 +31,7 @@ sourceSets {
 
 repositories {
     mavenLocal()
-    google()
+//    google()
     jcenter()
 }
 
